@@ -1,6 +1,5 @@
 import Head from "next/head";
 import { getComments } from "../lib/commentpicker";
-import { useState } from "react";
 import { useField, Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 
@@ -8,35 +7,43 @@ export default function Home() {
   const handleSubmit = async (data) => {
     const submitBtn = document.getElementById("submitBtn");
     const loadingGif = document.querySelector(".spinner");
-    var parser = document.createElement("a");
+
+    // get shortcode from URL
+    const parser = document.createElement("a");
     parser.href = data.link;
     const shortcodeRegex = /[^\/p\/]\w*/g;
-    const found = parser.pathname.match(shortcodeRegex);
+    data.shortcode = parser.pathname.match(shortcodeRegex);
 
-    if (found !== null) {
-      submitBtn.textContent = "Loading Comments..";
+    // invalid shortcode
+    if (data.shortcode === null) {
+      submitBtn.textContent = "Invalid Post";
       submitBtn.style.backgroundColor = "#808080";
-      submitBtn.setAttribute("type", "button");
-      loadingGif.style.visibility = "visible";
-      const result = await getComments(found[0]);
-      if (result === undefined) {
-        submitBtn.textContent = "Post does not exist";
-        submitBtn.style.backgroundColor = "#FF0000";
-        loadingGif.style.visibility = "hidden";
-      } else {
-        submitBtn.textContent = "Done!";
-        submitBtn.style.backgroundColor = "#00ba88";
-        loadingGif.style.visibility = "hidden";
-        var a = document.createElement("a");
-        a.href = "data:attachment/csv," + encodeURIComponent(result);
-        a.target = "_blank";
-        a.download = "igCommentPicker.csv";
-        document.body.appendChild(a);
-        a.click();
-      }
+      return;
+    }
+
+    data.shortcode = data.shortcode[0];
+    submitBtn.textContent = "Loading Comments..";
+    submitBtn.style.backgroundColor = "#808080";
+    submitBtn.setAttribute("type", "button");
+    loadingGif.style.visibility = "visible";
+    const comments = await getComments(data);
+    if (comments === undefined) {
+      // Post does not exist
+      submitBtn.textContent = "Post Does Not Exist";
+      submitBtn.style.backgroundColor = "#FF0000";
+      loadingGif.style.visibility = "hidden";
     } else {
-      submitBtn.textContent = "Invalid Post URL";
-      submitBtn.style.backgroundColor = "#808080";
+      // Comments retrieved
+      submitBtn.textContent = "Done!";
+      submitBtn.style.backgroundColor = "#00ba88";
+      loadingGif.style.visibility = "hidden";
+
+      var a = document.createElement("a");
+      a.href = "data:attachment/csv," + encodeURIComponent(comments);
+      a.target = "_blank";
+      a.download = "igCommentPicker.csv";
+      document.body.appendChild(a);
+      a.click();
     }
   };
 
@@ -54,14 +61,15 @@ export default function Home() {
           Paste the post URL and generate the comments in a .CSV file!
         </p>
         <Formik
-          initialValues={{ link: "" }}
+          initialValues={{ link: "", tagCheck: false }}
           validationSchema={Yup.object({
             link: Yup.string()
               .url("Invalid URL")
               .matches(
                 /(https?:\/\/(?:www\.)?instagram\.com\/p\/([^/?#&]+)).*/g,
                 "Invalid URL"
-              ),
+              )
+              .required("URL is required"),
           })}
           onSubmit={(value) => {
             handleSubmit(value);
@@ -72,6 +80,16 @@ export default function Home() {
             return (
               <Form onSubmit={handleSubmit}>
                 <URLField name="link" type="url" />
+                <label
+                  style={{
+                    display: "block",
+                    marginTop: "1em",
+                    textAlign: "center",
+                  }}
+                >
+                  <Field name="tagCheck" type="checkbox" />
+                  Only include comments with tags
+                </label>
                 <button
                   id="submitBtn"
                   style={{
@@ -89,6 +107,12 @@ export default function Home() {
                 >
                   Download .CSV
                 </button>
+                <a
+                  href="mailto:igcommentpicker@gmail.com"
+                  style={{ display: "block", textAlign: "center" }}
+                >
+                  Feedback
+                </a>
                 <div>
                   <div className="spinner" style={{ visibility: "hidden" }}>
                     <div className="bounce1"></div>
@@ -102,7 +126,9 @@ export default function Home() {
         </Formik>
       </main>
 
-      <footer>Powered by 🐨</footer>
+      <footer>
+        <p>Powered by 🐨</p>
+      </footer>
 
       <style jsx>{`
         button[type="submit"] {
@@ -147,7 +173,6 @@ export default function Home() {
         }
 
         a {
-          color: inherit;
           text-decoration: none;
         }
 
@@ -317,7 +342,7 @@ const URLField = ({ label, ...props }) => {
   return (
     <>
       <input
-        style={{ width: "23em", padding: "1em" }}
+        style={{ width: "23em", padding: "1em", textAlign: "center" }}
         placeholder="https://www.instagram.com/p/CB2ATDSl4Sh/"
         {...field}
         {...props}
