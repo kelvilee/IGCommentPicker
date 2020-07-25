@@ -60,7 +60,7 @@ export default function Home() {
           <h1 className="title">IG Comment Picker</h1>
 
           <p className="description">
-            Paste the post URL and generate the comments in a .CSV file!
+            Paste the post URL and generate the comments in a CSV file
           </p>
           <Formik
             initialValues={{ link: "", tagCheck: false }}
@@ -90,7 +90,7 @@ export default function Home() {
                     }}
                   >
                     <Field name="tagCheck" type="checkbox" />
-                    Only include comments with tags
+                    Only include comments with '@' tags
                   </label>
                   <button
                     id="submitBtn"
@@ -100,14 +100,14 @@ export default function Home() {
                       padding: "1em 0",
                       margin: "1em auto",
                       fontSize: "1.2em",
-                      backgroundColor: "#00ba88",
+                      backgroundColor: "green",
                       color: "white",
                       border: "none",
                     }}
                     type="submit"
                     disabled={isSubmitting}
                   >
-                    Download .CSV
+                    Download CSV
                   </button>
                   <a
                     href="mailto:igcommentpicker@gmail.com"
