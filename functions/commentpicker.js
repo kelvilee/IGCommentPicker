@@ -11,6 +11,7 @@ export async function getComments(data) {
 
   const comments = [];
   let page_info = {};
+
   try {
     do {
       let response = await axios.get(
@@ -20,6 +21,10 @@ export async function getComments(data) {
       if (response.data.data.shortcode_media === null) return; // Bad URL
       let edge_media_to_parent_comment =
         response.data.data.shortcode_media.edge_media_to_parent_comment;
+      if (edge_media_to_parent_comment.count > 10000) {
+        // current limit of 10k comments (200 requests)
+        return null;
+      }
       page_info = edge_media_to_parent_comment.page_info;
       let edges = edge_media_to_parent_comment.edges;
 
@@ -30,23 +35,19 @@ export async function getComments(data) {
 
       options.params.variables.after = page_info.end_cursor; // change query params to point to next page
     } while (page_info.has_next_page);
-  } catch (err) {
-    console.log(err);
-  } finally {
+
     const formattedComments = comments.map((edge) => ({
       date: new Date(edge.node.created_at * 1000),
       user: edge.node.owner.username,
-      comment: edge.node.text,
+      comment: edge.node.text.replace(/\n/g, " "),
     }));
 
     // sort function
     formattedComments.sort((a, b) => {
       return a.date - b.date;
     });
-    let csvContent = convertToCSV(formattedComments);
-    console.log(csvContent);
 
-    stringify(
+    const result = stringify(
       formattedComments,
       {
         cast: {
@@ -55,33 +56,15 @@ export async function getComments(data) {
           },
         },
         header: true,
-        quoted: true,
       },
-      (err, output) => {
+      (err) => {
         if (err) {
-          console.log(err);
           return;
-        } else {
-          console.log(output);
-          return output;
         }
       }
     );
+    return result;
+  } catch (err) {
+    return;
   }
-}
-
-function convertToCSV(objArray) {
-  const array = typeof objArray !== "object" ? JSON.parse(objArray) : objArray;
-  let str =
-    `${Object.keys(array[0])
-      .map((value) => `"${value}"`)
-      .join(",")}` + "\r\n";
-
-  return array.reduce((str, next) => {
-    str +=
-      `${Object.values(next)
-        .map((value) => `"${value}"`)
-        .join(",")}` + "\r\n";
-    return str;
-  }, str);
 }

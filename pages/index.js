@@ -38,12 +38,19 @@ export default function Home(args) {
     });
 
     const comments = await getComments(data);
-    console.log(comments);
+
     if (comments === undefined) {
       // Post does not exist
       setButtonState({
         status: "button-invalid",
-        desc: "Invalid Post",
+        desc: "Post Does Not Exist",
+        spinner: "hidden",
+      });
+      return;
+    } else if (comments === null) {
+      setButtonState({
+        status: "button-invalid",
+        desc: "Over 10,000 Comments Limit",
         spinner: "hidden",
       });
       return;
