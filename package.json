@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "csv-stringify": "^5.5.0",
     "formik": "^2.1.5",
     "next": "9.4.4",
     "react": "16.13.1",

@@ -18,7 +18,7 @@ export default function Home(args) {
     // get shortcode from URL
     const parser = document.createElement("a");
     parser.href = data.link;
-    data.shortcode = parser.pathname.match(/[^\/p\/]\w*/g);
+    data.shortcode = parser.pathname.match(/[^\/p\/][\w\-\_]*/g);
 
     // invalid shortcode
     if (data.shortcode === null) {
@@ -29,9 +29,8 @@ export default function Home(args) {
       });
       return;
     }
-
     data.shortcode = data.shortcode[0];
-    data.query_hash = args.query_hash;
+    data.query_hash = process.env.QUERY_HASH;
     setButtonState({
       status: "button-loading",
       desc: "Loading Comments..",
@@ -39,6 +38,7 @@ export default function Home(args) {
     });
 
     const comments = await getComments(data);
+    console.log(comments);
     if (comments === undefined) {
       // Post does not exist
       setButtonState({
@@ -296,8 +296,8 @@ export default function Home(args) {
   );
 }
 
-export async function getStaticProps() {
-  return {
-    props: { query_hash: process.env.QUERY_HASH }, // will be passed to the page component as props
-  };
-}
+// export async function getStaticProps() {
+//   return {
+//     props: { query_hash: process.env.QUERY_HASH }, // will be passed to the page component as props
+//   };
+// }
