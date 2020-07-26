@@ -1,51 +1,65 @@
 import Head from "next/head";
-import { getComments } from "../lib/commentpicker";
-import { useField, Formik, Form, Field } from "formik";
+import { useState } from "react";
+import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
+
 import Layout from "../components/layout";
+import URLField from "../components/URLField";
+import { getComments } from "../functions/commentpicker";
 
-export default function Home() {
+export default function Home(args) {
+  const [buttonState, setButtonState] = useState({
+    status: "button-active",
+    desc: "Download CSV",
+    spinner: "hidden",
+  });
+
   const handleSubmit = async (data) => {
-    const submitBtn = document.getElementById("submitBtn");
-    const loadingGif = document.querySelector(".spinner");
-
     // get shortcode from URL
     const parser = document.createElement("a");
     parser.href = data.link;
-    const shortcodeRegex = /[^\/p\/]\w*/g;
-    data.shortcode = parser.pathname.match(shortcodeRegex);
+    data.shortcode = parser.pathname.match(/[^\/p\/]\w*/g);
 
     // invalid shortcode
     if (data.shortcode === null) {
-      submitBtn.textContent = "Invalid Post";
-      submitBtn.style.backgroundColor = "#808080";
+      setButtonState({
+        status: "button-invalid",
+        desc: "Invalid Post",
+        spinner: "hidden",
+      });
       return;
     }
 
     data.shortcode = data.shortcode[0];
-    submitBtn.textContent = "Loading Comments..";
-    submitBtn.style.backgroundColor = "#808080";
-    submitBtn.setAttribute("type", "button");
-    loadingGif.style.visibility = "visible";
+    data.query_hash = args.query_hash;
+    setButtonState({
+      status: "button-loading",
+      desc: "Loading Comments..",
+      spinner: "visible",
+    });
+
     const comments = await getComments(data);
     if (comments === undefined) {
       // Post does not exist
-      submitBtn.textContent = "Post Does Not Exist";
-      submitBtn.style.backgroundColor = "#FF0000";
-      loadingGif.style.visibility = "hidden";
-    } else {
-      // Comments retrieved
-      submitBtn.textContent = "Done!";
-      submitBtn.style.backgroundColor = "#00ba88";
-      loadingGif.style.visibility = "hidden";
-
-      var a = document.createElement("a");
-      a.href = "data:attachment/csv," + encodeURIComponent(comments);
-      a.target = "_blank";
-      a.download = "igCommentPicker.csv";
-      document.body.appendChild(a);
-      a.click();
+      setButtonState({
+        status: "button-invalid",
+        desc: "Invalid Post",
+        spinner: "hidden",
+      });
+      return;
     }
+
+    // Comments retrieved
+    setButtonState({
+      status: "button-done",
+      desc: "Done!",
+      spinner: "hidden",
+    });
+    parser.href = "data:attachment/csv," + encodeURIComponent(comments);
+    parser.target = "_blank";
+    parser.download = "igCommentPicker.csv";
+    document.body.appendChild(parser);
+    parser.click();
   };
 
   return (
@@ -82,41 +96,24 @@ export default function Home() {
               return (
                 <Form onSubmit={handleSubmit}>
                   <URLField name="link" type="url" />
-                  <label
-                    style={{
-                      display: "block",
-                      marginTop: "1em",
-                      textAlign: "center",
-                    }}
-                  >
+                  <label className="tagCheckLabel">
                     <Field name="tagCheck" type="checkbox" />
                     Only include comments with '@' tags
                   </label>
                   <button
                     id="submitBtn"
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      padding: "1em 0",
-                      margin: "1em auto",
-                      fontSize: "1.2em",
-                      backgroundColor: "green",
-                      color: "white",
-                      border: "none",
-                    }}
+                    className={buttonState.status}
                     type="submit"
                     disabled={isSubmitting}
                   >
-                    Download CSV
+                    {buttonState.desc}
                   </button>
-                  <a
-                    href="mailto:igcommentpicker@gmail.com"
-                    style={{ display: "block", textAlign: "center" }}
-                  >
-                    Feedback
-                  </a>
+                  <a href="mailto:igcommentpicker@gmail.com">Feedback</a>
                   <div>
-                    <div className="spinner" style={{ visibility: "hidden" }}>
+                    <div
+                      className="spinner"
+                      style={{ visibility: buttonState.spinner }}
+                    >
                       <div className="bounce1"></div>
                       <div className="bounce2"></div>
                       <div className="bounce3"></div>
@@ -127,14 +124,50 @@ export default function Home() {
             }}
           </Formik>
         </main>
-
         <footer>
           <p>Powered by 🐨</p>
         </footer>
 
         <style jsx>{`
-          button[type="submit"] {
+          button {
+            display: block;
+            width: 100%;
+            padding: 1em 0;
+            margin: 1em auto;
+            font-size: 1.2em;
+            color: white;
+            border: none;
             cursor: pointer;
+          }
+
+          .button-active {
+            background-color: green;
+          }
+
+          .button-invalid {
+            background-color: gold;
+            cursor: default;
+          }
+
+          .button-loading {
+            background-color: gray;
+            cursor: default;
+          }
+
+          .button-dne {
+            background-color: red;
+            cursor: default;
+          }
+
+          .button-done {
+            background-color: #00ba88;
+            cursor: default;
+          }
+
+          .tagCheckLabel {
+            display: block;
+            margin-top: 1em;
+            text-align: center;
           }
 
           .container {
@@ -164,29 +197,10 @@ export default function Home() {
             align-items: center;
           }
 
-          footer img {
-            margin-left: 0.5rem;
-          }
-
-          footer a {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-
           a {
             text-decoration: none;
-          }
-
-          .title a {
-            color: #0070f3;
-            text-decoration: none;
-          }
-
-          .title a:hover,
-          .title a:focus,
-          .title a:active {
-            text-decoration: underline;
+            display: block;
+            text-align: center;
           }
 
           .title {
@@ -195,67 +209,9 @@ export default function Home() {
             font-size: 4rem;
           }
 
-          .title,
-          .description {
-            text-align: center;
-          }
-
           .description {
             line-height: 1.5;
             font-size: 1.5rem;
-          }
-
-          code {
-            background: #fafafa;
-            border-radius: 5px;
-            padding: 0.75rem;
-            font-size: 1.1rem;
-            font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-              DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-          }
-
-          .grid {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-
-            max-width: 800px;
-            margin-top: 3rem;
-          }
-
-          .card {
-            margin: 1rem;
-            flex-basis: 45%;
-            padding: 1.5rem;
-            text-align: left;
-            color: inherit;
-            text-decoration: none;
-            border: 1px solid #eaeaea;
-            border-radius: 10px;
-            transition: color 0.15s ease, border-color 0.15s ease;
-          }
-
-          .card:hover,
-          .card:focus,
-          .card:active {
-            color: #0070f3;
-            border-color: #0070f3;
-          }
-
-          .card h3 {
-            margin: 0 0 1rem 0;
-            font-size: 1.5rem;
-          }
-
-          .card p {
-            margin: 0;
-            font-size: 1.25rem;
-            line-height: 1.5;
-          }
-
-          .logo {
-            height: 1em;
           }
 
           input {
@@ -340,19 +296,8 @@ export default function Home() {
   );
 }
 
-const URLField = ({ label, ...props }) => {
-  const [field, meta, helpers] = useField(props);
-  return (
-    <>
-      <input
-        style={{ width: "23em", padding: "1em", textAlign: "center" }}
-        placeholder="https://www.instagram.com/p/CB2ATDSl4Sh/"
-        {...field}
-        {...props}
-      />
-      {meta.touched && meta.error ? (
-        <div style={{ color: "red" }}>{meta.error}</div>
-      ) : null}
-    </>
-  );
-};
+export async function getStaticProps() {
+  return {
+    props: { query_hash: process.env.QUERY_HASH }, // will be passed to the page component as props
+  };
+}

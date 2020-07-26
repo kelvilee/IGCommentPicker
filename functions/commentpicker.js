@@ -3,7 +3,7 @@ const axios = require("axios");
 export async function getComments(data) {
   const options = {
     params: {
-      query_hash: "bc3296d1ce80a24b1b6e40b1e72903f5",
+      query_hash: data.query_hash,
       variables: { shortcode: data.shortcode, first: 50 },
     },
   };
