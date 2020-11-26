@@ -105,7 +105,7 @@ export default function Home(args) {
                   <URLField name="link" type="url" />
                   <label className="tagCheckLabel">
                     <Field name="tagCheck" type="checkbox" />
-                    Only include comments with '@' tags
+                    Only include comments with @ tags
                   </label>
                   <button
                     id="submitBtn"
