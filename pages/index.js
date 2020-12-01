@@ -81,59 +81,8 @@ export default function Home(args) {
           <h1 className="title">IG Comment Picker</h1>
 
           <p className="description">
-            Paste the post URL and generate the comments in a CSV file
+            Currently working on a replacement as Instagram won't allow unauthorized HTTP requests. Stay tuned!
           </p>
-          <Formik
-            initialValues={{ link: "", tagCheck: false }}
-            validationSchema={Yup.object({
-              link: Yup.string()
-                .url("Invalid URL")
-                .matches(
-                  /(https?:\/\/(?:www\.)?instagram\.com\/p\/([^/?#&]+)).*/g,
-                  "Invalid URL"
-                )
-                .required("URL is required"),
-            })}
-            onSubmit={(value) => {
-              handleSubmit(value);
-            }}
-          >
-            {(props) => {
-              const { isSubmitting, handleSubmit } = props;
-              return (
-                <Form onSubmit={handleSubmit}>
-                  <URLField name="link" type="url" />
-                  <label className="tagCheckLabel">
-                    <Field name="tagCheck" type="checkbox" />
-                    Only include comments with @ tags
-                  </label>
-                  <button
-                    id="submitBtn"
-                    className={buttonState.status}
-                    type="submit"
-                    disabled={isSubmitting}
-                  >
-                    {buttonState.desc}
-                  </button>
-                  <a href="mailto:igcommentpicker@gmail.com">Feedback</a>
-                  <div>
-                    <div
-                      className="spinner"
-                      style={{ visibility: buttonState.spinner }}
-                    >
-                      <div className="bounce1"></div>
-                      <div className="bounce2"></div>
-                      <div className="bounce3"></div>
-                    </div>
-                  </div>
-                </Form>
-              );
-            }}
-          </Formik>
-        </main>
-        <footer>
-          <p>Powered by 🐨</p>
-        </footer>
 
         <style jsx>{`
           button {
@@ -303,8 +252,59 @@ export default function Home(args) {
   );
 }
 
-// export async function getStaticProps() {
-//   return {
-//     props: { query_hash: process.env.QUERY_HASH }, // will be passed to the page component as props
-//   };
-// }
+//  <main>
+//           <h1 className="title">IG Comment Picker</h1>
+
+//           <p className="description">
+//             Paste the post URL and generate the comments in a CSV file
+//           </p>
+//           <Formik
+//             initialValues={{ link: "", tagCheck: false }}
+//             validationSchema={Yup.object({
+//               link: Yup.string()
+//                 .url("Invalid URL")
+//                 .matches(
+//                   /(https?:\/\/(?:www\.)?instagram\.com\/p\/([^/?#&]+)).*/g,
+//                   "Invalid URL"
+//                 )
+//                 .required("URL is required"),
+//             })}
+//             onSubmit={(value) => {
+//               handleSubmit(value);
+//             }}
+//           >
+//             {(props) => {
+//               const { isSubmitting, handleSubmit } = props;
+//               return (
+//                 <Form onSubmit={handleSubmit}>
+//                   <URLField name="link" type="url" />
+//                   <label className="tagCheckLabel">
+//                     <Field name="tagCheck" type="checkbox" />
+//                     Only include comments with @ tags
+//                   </label>
+//                   <button
+//                     id="submitBtn"
+//                     className={buttonState.status}
+//                     type="submit"
+//                     disabled={isSubmitting}
+//                   >
+//                     {buttonState.desc}
+//                   </button>
+//                   <div>
+//                     <div
+//                       className="spinner"
+//                       style={{ visibility: buttonState.spinner }}
+//                     >
+//                       <div className="bounce1"></div>
+//                       <div className="bounce2"></div>
+//                       <div className="bounce3"></div>
+//                     </div>
+//                   </div>
+//                 </Form>
+//               );
+//             }}
+//           </Formik>
+//         </main>
+//         <footer>
+//           <p>Powered by 🐨</p>
+//         </footer>
