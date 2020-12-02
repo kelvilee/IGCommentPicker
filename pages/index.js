@@ -81,8 +81,10 @@ export default function Home(args) {
           <h1 className="title">IG Comment Picker</h1>
 
           <p className="description">
-            Currently working on a replacement as Instagram won't allow unauthorized HTTP requests. Stay tuned!
+            Currently working on a replacement as Instagram won't allow
+            unauthorized HTTP requests. Stay tuned!
           </p>
+        </main>
 
         <style jsx>{`
           button {
